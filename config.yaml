@@ -1,0 +1,50 @@
+VM1:
+  ip: "10.10.10.0"
+  hostname: deathstar
+  diskgb: 1000
+  ram: 8
+  status: running
+  tags:
+    - tag:
+      tagName: priority
+      tagValue: critical
+    - tag:
+      tagName: org
+      tagValue: empire
+    - tag:
+      tagName: vulnerability
+      tagValue: none... at all
+VM2:
+  ip: "10.10.10.19"
+  hostname: executor
+  diskgb: 19
+  ram: 4
+  status: running
+  tags:
+    - tag:
+      tagName: priority
+      tagValue: high
+    - tag:
+      tagName: org
+      tagValue: empire
+    - tag:
+      tagName: vulnerability
+      tagValue: rebel scum
+VM3:
+  ip: "192.10.0.1"
+  hostname: x-wing
+  diskgb: 200
+  ram: 32
+  status: "off"
+  tags:
+    - tag:
+      tagName: priority
+      tagValue: medium
+    - tag:
+      tagName: org
+      tagValue: empire
+    - tag:
+      tagName: vulnerability
+      tagValue: TIE fighter
+
+
