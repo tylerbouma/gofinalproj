@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os/exec"
+	"sync"
 
 	"gopkg.in/yaml.v3"
 )
@@ -71,9 +73,23 @@ func (rg ResourceGroup) rginfo() {
 	fmt.Printf("--------------\n\n")
 }
 
+func createVM(vm Virtmach, cmd string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	fmt.Println(vm.Hostname, "is running", cmd)
+
+	// uses a passed str to execute a command
+	out, err := exec.Command("bash", "-c", cmd).Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(string(out))
+}
+
 func main() {
 	rg := ResourceGroup{name: "empire", vms: []Virtmach{}}
 
+	// read a yaml config file containing VM information
 	yfile, err := ioutil.ReadFile("config.yaml")
 
 	if err != nil {
@@ -82,29 +98,40 @@ func main() {
 
 	vms := make(map[string]Virtmach)
 
-	err = yaml.Unmarshal(yfile, &vms)
-
-	if err != nil {
+	// parse the yaml config to create new VMs
+	if err = yaml.Unmarshal(yfile, &vms); err != nil {
 		log.Fatal(err)
 	}
 
+	// create a random command for our "VMs" to run
+	cmd := "ping -c 4 google.com"
+	wg := new(sync.WaitGroup)
 	for _, v := range vms {
-		// print out system info for all VMs configured
-		v.sysinfo()
+		// create a go routine to act as a fact VM and run a simple job
+		// once the job is done on all VMs allow the program to move on
+		go createVM(v, cmd, wg)
+		wg.Add(1)
 	}
+
+	wg.Wait()
 
 	// deallocate a VM
 	vm1 := vms["VM1"]
 	vm1.dealloc()
 	vm1.sysinfo()
 
+	// associate vm1 for our resource group
 	vm1.associate(&rg)
+	rg.rginfo()
+	vm1.sysinfo()
 
-	// We can also point to a specific VM and it's underlying properties
+	// we can also point to a specific VM and it's underlying properties
 	fmt.Println("grab the IP of vm2")
 	fmt.Println(vms["VM2"].Ip)
 
-	// take a look at the resource group we created
+	// add another vm to our resource group
+	vm2 := vms["VM2"]
+	vm2.associate(&rg)
 	rg.rginfo()
 
 }
